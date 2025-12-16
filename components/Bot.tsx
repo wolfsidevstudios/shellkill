@@ -21,32 +21,23 @@ export const Bot: React.FC<BotProps> = ({ id, name, startPos, playerRef }) => {
   
   const takePlayerDamage = useStore((state) => state.takeDamage);
   const addScore = useStore((state) => state.addScore);
+  const triggerHitMarker = useStore((state) => state.triggerHitMarker);
 
   useEffect(() => {
     // Listen for shots
     const handleHit = (e: any) => {
       if (isDead) return;
-      // In a real Rapier setup, we'd check handles. Here we approximate for the demo
-      // or assume perfect raycast. Since we can't easily get the handle ID back to React state without context,
-      // we will do a distance check for the "hit" event in this simplified logic, 
-      // OR better: use the collider onIntersection or checking the raycast result in the Player component.
-      
-      // However, to make this robust without complex context:
-      // We will let the Player component handle the logic of "Who did I hit?" if possible.
-      // BUT, since we don't have the refs in Player, we will hack it slightly:
-      // The Bot listens to "player-shoot" global event, checks distance to ray line.
-      
-      // Actually, let's just make the hit box large for the demo or rely on the event data if we could pass the ref.
-      // Re-approach: simpler logic.
-      
+
       if (rigidBody.current && e.detail) {
           const botPos = rigidBody.current.translation();
           const hitPoint = e.detail.point; // Point where ray hit *something*
           
           if (hitPoint) {
             const dist = new THREE.Vector3(botPos.x, botPos.y, botPos.z).distanceTo(hitPoint);
+            // Generous hit box for gameplay feel
             if (dist < 1.5) {
                 // Hit!
+                triggerHitMarker();
                 setHealth(prev => {
                     const next = prev - 35;
                     if (next <= 0 && prev > 0) {
@@ -132,17 +123,21 @@ export const Bot: React.FC<BotProps> = ({ id, name, startPos, playerRef }) => {
         <CapsuleCollider args={[0.5, 0.5]} />
         <mesh castShadow receiveShadow scale={EGG_SCALE}>
             <sphereGeometry args={[0.5, 32, 32]} />
-            <meshStandardMaterial color={health < 50 ? '#ffcccc' : COLORS.player} />
+            <meshStandardMaterial 
+              color={health < 50 ? '#ffcccc' : COLORS.player} 
+              roughness={0.2}
+              metalness={0.1}
+            />
         </mesh>
         
         {/* Eye/Shell details */}
         <mesh position={[0.2, 0.2, 0.4]}>
             <sphereGeometry args={[0.1]} />
-            <meshStandardMaterial color="black" />
+            <meshStandardMaterial color="black" roughness={0} />
         </mesh>
         <mesh position={[-0.2, 0.2, 0.4]}>
             <sphereGeometry args={[0.1]} />
-            <meshStandardMaterial color="black" />
+            <meshStandardMaterial color="black" roughness={0} />
         </mesh>
 
         {/* Gun */}

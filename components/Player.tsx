@@ -19,7 +19,7 @@ export const Player: React.FC = () => {
   const shootAmmo = useStore((state) => state.shootAmmo);
   const reload = useStore((state) => state.reload);
   const isReloading = useStore((state) => state.isReloading);
-  const addScore = useStore((state) => state.addScore);
+  const gameMode = useStore((state) => state.gameMode);
 
   // Input state
   const [keys, setKeys] = useState({
@@ -84,10 +84,6 @@ export const Player: React.FC = () => {
       const hit = world.castRay(ray, 100, true);
 
       if (hit && hit.collider) {
-         // Check if we hit an enemy
-         // We interact with enemies via a global event or simpler collision logic
-         // Since Rapier handles physics, we can check user data on rigidbodies or just use the event system
-         // For simplicity in this demo, we'll dispatch a custom event that bots listen to
          const event = new CustomEvent('player-shoot', { 
            detail: { 
              hitId: hit.collider.handle,
@@ -121,7 +117,6 @@ export const Player: React.FC = () => {
 
     // Jump
     if (keys.jump) {
-      // Simple ground check via raycast down would be better, but strict physics check is okay for demo
       if (Math.abs(velocity.y) < 0.1) {
         rigidBody.current.setLinvel({ x: velocity.x, y: JUMP_FORCE, z: velocity.z }, true);
       }
@@ -130,6 +125,18 @@ export const Player: React.FC = () => {
     // Camera sync
     const pos = rigidBody.current.translation();
     camera.position.copy(new THREE.Vector3(pos.x, pos.y + 0.8, pos.z));
+    
+    // Multiplayer Broadcast (throttled slightly or every frame)
+    if (gameMode === 'MULTIPLAYER') {
+        // We broadcast global events that NetworkManager picks up
+        const event = new CustomEvent('local-player-move', {
+            detail: {
+                pos: [pos.x, pos.y, pos.z],
+                rot: [camera.rotation.x, camera.rotation.y, camera.rotation.z]
+            }
+        });
+        window.dispatchEvent(event);
+    }
   });
 
   return (
@@ -146,13 +153,6 @@ export const Player: React.FC = () => {
         <CapsuleCollider args={[0.5, 0.5]} />
       </RigidBody>
       
-      {/* Weapon is attached to camera via portal or just rendered in scene and synced? 
-          Actually, let's put it in the camera group if possible, or just sync it manually.
-          R3F makes it easier to just parent it to the camera if the camera wasn't controlled by orbit controls.
-          Since we manually update camera, we can use createPortal or just rely on the HUD view.
-          However, usually in FPS, we create a separate scene for the gun to prevent clipping, 
-          but for this MVP, we will parent it to the camera object using a helper component.
-      */}
       <group position={camera.position} rotation={camera.rotation}>
         <Weapon isShooting={shootAnim} />
       </group>

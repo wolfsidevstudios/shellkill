@@ -20,5 +20,17 @@ export interface BotConfig {
 export enum GameStatus {
   MENU = 'MENU',
   PLAYING = 'PLAYING',
-  GAME_OVER = 'GAME_OVER'
+  GAME_OVER = 'GAME_OVER',
+  MULTIPLAYER_LOBBY = 'MULTIPLAYER_LOBBY',
+  CONNECTING = 'CONNECTING'
+}
+
+export type GameMode = 'SOLO' | 'MULTIPLAYER';
+
+export interface RemotePlayerData {
+  id: string;
+  position: Vector3Array;
+  rotation: [number, number, number]; // Euler
+  health: number;
+  isDead: boolean;
 }
