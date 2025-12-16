@@ -20,9 +20,10 @@ const Box: React.FC<{ position: [number, number, number], size: [number, number,
 
 export const Level: React.FC = () => {
   // Load some prototype textures for that "arena shooter" feel
+  // Changed texture_13 to texture_10 as 13 does not exist in the source repo
   const textures = useTexture({
     grid: 'https://raw.githubusercontent.com/pmndrs/drei-assets/master/prototype/texture_09.png',
-    darkGrid: 'https://raw.githubusercontent.com/pmndrs/drei-assets/master/prototype/texture_13.png',
+    darkGrid: 'https://raw.githubusercontent.com/pmndrs/drei-assets/master/prototype/texture_10.png',
     wall: 'https://raw.githubusercontent.com/pmndrs/drei-assets/master/prototype/texture_12.png',
   });
 
